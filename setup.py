@@ -1,27 +1,19 @@
 from setuptools import setup, Extension, find_packages
 from setuptools.command.build_ext import build_ext
 import os
+import re
 import sys
 import glob
-import subprocess
 
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PACKAGE_ROOT = os.path.join(SCRIPT_DIR, "procgen")
 README = open(os.path.join(SCRIPT_DIR, "README.md"), "rb").read().decode("utf8")
 
+
 # dynamically determine version number based on git commit
 def determine_version():
     version = open(os.path.join(PACKAGE_ROOT, "version.txt"), "r").read().strip()
     sha = "unknown"
-
-    try:
-        sha = (
-            subprocess.check_output(["git", "rev-parse", "HEAD"], cwd=SCRIPT_DIR)
-            .decode("ascii")
-            .strip()
-        )
-    except Exception:
-        pass
 
     if "GITHUB_REF" in os.environ:
         ref = os.environ["GITHUB_REF"]
@@ -34,13 +26,22 @@ def determine_version():
                 version,
             )
             return version
-    
+
+    # Add resolution to the version
+    with open(os.path.join(PACKAGE_ROOT, "src", "game.h"), "r") as f:
+        header = f.read()
+        width = re.search(r"RES_W = [0-9]+", header).group()[8:]
+        height = re.search(r"RES_H = [0-9]+", header).group()[8:]
+    resolution = f"{height}x{width}"
+
     if sha == "unknown":
-        return version
+        return version + "+" + resolution
     else:
-        return version + "+" + sha[:7]
+        return version + "+" + resolution + "+" + sha[:7]
+
 
 version = determine_version()
+
 
 # build shared library
 class DummyExtension(Extension):
@@ -102,7 +103,6 @@ setup(
     extras_require={"test": ["pytest==6.2.5", "pytest-benchmark==3.4.1"]},
     ext_modules=[DummyExtension()],
     cmdclass={"build_ext": custom_build_ext},
-
     author="OpenAI",
     description="Procedurally Generated Game-Like RL Environments",
     long_description=README,
