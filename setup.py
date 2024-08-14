@@ -15,18 +15,6 @@ def determine_version():
     version = open(os.path.join(PACKAGE_ROOT, "version.txt"), "r").read().strip()
     sha = "unknown"
 
-    if "GITHUB_REF" in os.environ:
-        ref = os.environ["GITHUB_REF"]
-        parts = ref.split("/")
-        assert parts[0] == "refs"
-        if parts[1] == "tags":
-            tag = parts[2]
-            assert tag == version, "mismatch in tag vs version, expected: %s actual: %s" % (
-                tag,
-                version,
-            )
-            return version
-
     # Add resolution to the version
     with open(os.path.join(PACKAGE_ROOT, "src", "game.h"), "r") as f:
         header = f.read()
