@@ -11,7 +11,7 @@ jobs:
       matrix:
         # https://help.github.com/en/actions/reference/workflow-syntax-for-github-actions#jobsjob_idruns-on
         os: ["ubuntu-22.04", "windows-2019"]  # currently mac-os has an error
-        python-version: ["3.7"]
+        python-version: ["3.7", "3.10"]
     steps:
       - uses: actions/checkout@v4
       # run vcvars on windows
@@ -40,7 +40,7 @@ jobs:
         run: python -u -m procgen_build.build_package
 
       - name: Upload wheel artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: wheels
           path: ./wheelhouse/*.whl
